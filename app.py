@@ -16,19 +16,11 @@ def upload_csv():
 
         file = request.files['file']
 
-        df_coordinates = create_data_frame_spark(file)
-
-        write_database("coordinates", df_coordinates, 10)
-            
-        return jsonify({"message": "Archivo CSV almacenado exitosamente en la base de datos"}), 200
-
-    
-
         df_coordinates = create_data_frame(spark, file)
         if not df_coordinates:
             return jsonify({"message": "El CSV no dispone de una buena información"}), 400
 
-        write_database("coordinates", df_coordinates, 2)
+        write_database("coordinates", df_coordinates, 10)
             
         return jsonify({"message": "Archivo CSV almacenado exitosamente en la base de datos"}), 200
 
@@ -47,8 +39,9 @@ def create_data_frame(spark, file):
 
     headers = next(csv_reader)
 
-
     df = pd.DataFrame(csv_reader, columns=headers)
+
+    df = df.astype(float)
 
     schema = StructType([
         StructField("lat", DoubleType(), True),
@@ -63,13 +56,15 @@ def write_database(table_name, df, partition_amount):
     db_properties = {
         "user": "admin",
         "password": "admin",
-        "driver": "org.postgresql.Driver"
+        "driver": "org.postgresql.Driver",
+        "isolationLevel": "NONE"
     }
 
     df_to_write = df.repartition(partition_amount)
 
     df_to_write.write.jdbc(url=db_url, table=table_name, mode="overwrite", properties=db_properties)
 
+# Esta funcion no se esta llamando
 def create_data_frame_spark(file):
     csv_data = file.read().decode('utf-8')
 

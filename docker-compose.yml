@@ -1,0 +1,28 @@
+version: '3'
+services:
+  #novae-backend:
+  #  container_name: novae-backend-container
+  #  image: "ditoaforero/backend-novae:1.0"
+  #  ports:
+  #    - "8080:8080"
+  #  links:
+  #    - novae-postgres
+  #  depends_on:
+  #    - novae-postgres
+  #  environment:
+  #    - DB_URL=jdbc:postgresql://novae-postgres:5432/postgres
+  #    - DB_USER=postgres
+  postgres:
+    container_name: bia-postgres
+    image: "postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      #- ./initdb.d:/docker-entrypoint-initdb.d
+      - ./volumes/postgres/data:/var/lib/postgresql/data/pgdata
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=bia

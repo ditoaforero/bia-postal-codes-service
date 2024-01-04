@@ -2,13 +2,13 @@ from io import StringIO
 from flask import Flask, request, jsonify
 import csv
 import pandas as pd
-from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, DoubleType
+import psycopg2
+import os
+import uuid
 
 app = Flask(__name__)
-spark = SparkSession.builder.appName("CSV to Spark Dataframe").master("local[*]").config("spark.jars", "postgresql-42.5.0.jar").getOrCreate()
 
-@app.route('/upload_csv', methods=['POST'])
+@app.route('/coordinates', methods=['POST'])
 def upload_csv():
     try:
         if 'file' not in request.files:
@@ -16,20 +16,23 @@ def upload_csv():
 
         file = request.files['file']
 
-        df_coordinates = create_data_frame(spark, file)
-        if not df_coordinates:
-            return jsonify({"message": "El CSV no dispone de una buena información"}), 400
+        uuid_file = str(uuid.uuid4())
+        print("UUID: ", uuid_file)
 
-        write_database("coordinates", df_coordinates, 10)
-            
+        create_stage(file, uuid_file)
+        execute_copy(uuid_file)
+        delete_file(uuid_file)
+
+
         return jsonify({"message": "Archivo CSV almacenado exitosamente en la base de datos"}), 200
 
     except Exception as e:
+        print(e)
         return jsonify({"message": str(e)}), 500
     
 
 
-def create_data_frame(spark, file):
+def create_stage(file, uuid):
     if not file:
         return None
     
@@ -40,39 +43,25 @@ def create_data_frame(spark, file):
     headers = next(csv_reader)
 
     df = pd.DataFrame(csv_reader, columns=headers)
+    df.astype(float)
 
-    df = df.astype(float)
-
-    schema = StructType([
-        StructField("lat", DoubleType(), True),
-        StructField("lon", DoubleType(), True),
-    ])
-            
-    return spark.createDataFrame(df, schema=schema)
+    df.to_csv(f"./stage/{uuid}.csv", index=False, header=False)
 
 
-def write_database(table_name, df, partition_amount):
-    db_url = "jdbc:postgresql://localhost:5432/bia"
-    db_properties = {
-        "user": "admin",
-        "password": "admin",
-        "driver": "org.postgresql.Driver",
-        "isolationLevel": "NONE"
-    }
-
-    df_to_write = df.repartition(partition_amount)
-
-    df_to_write.write.jdbc(url=db_url, table=table_name, mode="overwrite", properties=db_properties)
-
-# Esta funcion no se esta llamando
-def create_data_frame_spark(file):
-    csv_data = file.read().decode('utf-8')
-
-    # Read CSV using Spark
-    df = spark.read.csv(spark.sparkContext.parallelize([csv_data]))
-
-    return df
-
+def delete_file(uuid):
+    if not os.path.exists(f"./stage/{uuid}.csv"):
+        return
     
+    os.remove(f"./stage/{uuid}.csv")
+
+#define a function
+def execute_copy(uuid):
+    file = open(f'./stage/{uuid}.csv')
+    con = psycopg2.connect(database="bia",user="admin",password="admin",host="localhost",port=5432)
+    cursor = con.cursor()
+    cursor.copy_from(file, 'coordenadas', sep=",")
+    con.commit()
+    con.close()
+
 if __name__ == '__main__':
     app.run(debug=True)

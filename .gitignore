@@ -3,4 +3,8 @@
 
 volumes/
 
-__pycache__/app.cpython-311.pyc
+__pycache__/
+
+.DS_Store
+
+.venv-bia/

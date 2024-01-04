@@ -6,7 +6,12 @@ import psycopg2
 import os
 import uuid
 
+# Spark
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, DoubleType
+
 app = Flask(__name__)
+spark = SparkSession.builder.appName("postcodes").master("local[*]").config("spark.jars", "postgresql-42.5.0.jar").getOrCreate()
 
 @app.route('/coordinates', methods=['POST'])
 def upload_csv():
@@ -30,6 +35,24 @@ def upload_csv():
         print(e)
         return jsonify({"message": str(e)}), 500
     
+
+@app.route('/calculate-postcode', methods=['GET'])
+def calculate_post_code():
+    print("Calculando código postal")
+    calculate_post_code_process()
+    return jsonify({"message": "Calculando código postal"}), 200
+
+
+def calculate_post_code_process():
+    db_url = "jdbc:postgresql://localhost:5432/bia"
+    db_properties = {
+        "user": "admin",
+        "password": "admin",
+        "driver": "org.postgresql.Driver",
+    }
+    df = spark.read.jdbc(url=db_url, table='coordinates', properties=db_properties)
+    df.show()
+    df.printSchema()
 
 
 def create_stage(file, uuid):

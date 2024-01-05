@@ -1,17 +1,5 @@
 version: '3'
 services:
-  #novae-backend:
-  #  container_name: novae-backend-container
-  #  image: "ditoaforero/backend-novae:1.0"
-  #  ports:
-  #    - "8080:8080"
-  #  links:
-  #    - novae-postgres
-  #  depends_on:
-  #    - novae-postgres
-  #  environment:
-  #    - DB_URL=jdbc:postgresql://novae-postgres:5432/postgres
-  #    - DB_USER=postgres
   postgres:
     container_name: bia-postgres
     image: "postgres"

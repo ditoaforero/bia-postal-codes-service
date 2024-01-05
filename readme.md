@@ -1,8 +1,7 @@
-# microservices-postal-codes
+# bia-postal-codes
 
 ## Descripcion
-Este proyecto contine los microservicios necesarios para processar los códigos postales.
-
+Este repositorio contiene únicamente los servicios necesarios para procesar los códigos postales.
 
 ## Instalación
 
@@ -18,6 +17,11 @@ Clone este repositorio y ejecute el docker-compose
 git clone xxxxx
 cd microservices-postal-codes
 docker-compose up -d
+```
+**Nota**: 
+Para ampliar escalabilidad en la actualización de los codigos postales puedes adjuntar el parametro --scale coordinates=x donde x es el número de workers escuchando para procesar las peticiones
+```
+docker-compose up -d --scale coordinates=10
 ```
 
 Una vez ejecutado el docker-compose, la API esta escuchando por el puerto 5000.

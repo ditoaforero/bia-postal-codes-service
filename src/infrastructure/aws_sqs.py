@@ -1,9 +1,12 @@
 import json
 import logging
 import boto3
+import os
 
-END_POINT_URL = "http://localhost:4566"
-SQS_QUEUE_URL = "http://localhost:4566/000000000000/process"
+localstack_endpoint = os.environ.get("LOCALSTACK_ENDPOINT", "localhost")
+
+END_POINT_URL = f"http://{localstack_endpoint}:4566"
+SQS_QUEUE_URL = f"http://{localstack_endpoint}:4566/000000000000/process"
 
 
 def send_sqs_message(message):

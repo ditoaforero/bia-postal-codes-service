@@ -1,4 +1,4 @@
-# bia-postal-codes
+# bia-postal-codes-service
 
 ## Descripcion
 Este repositorio contiene únicamente los servicios necesarios para procesar los códigos postales.
@@ -14,8 +14,8 @@ Install [docker](https://docs.docker.com/install/linux/docker-ce/ubuntu/), and [
 Clone este repositorio y ejecute el docker-compose
 
 ```
-git clone xxxxx
-cd microservices-postal-codes
+git clone https://github.com/ditoaforero/bia-postal-codes-service.git
+cd bia-postal-codes-service
 docker-compose up -d
 ```
 **Nota**: 
